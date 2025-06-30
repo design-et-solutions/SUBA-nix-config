@@ -27,7 +27,6 @@ in {
       after = [ "network.target" "tracker.service" "sonify.service" ];
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
-        User = "wallago";
         ExecStart = "${gateway}";
         Environment = [
           "RUST_LOG=info"
@@ -49,7 +48,6 @@ in {
       after = [ "network.target" ];
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
-        User = "wallago";
         ExecStart = "${tracker}";
         Environment =
           [ "RUST_LOG=info" ''APP_HOST="0.0.0.0"'' "APP_PORT=50200" ];
@@ -59,11 +57,10 @@ in {
 
     sonify = {
       description = "Run sonify";
-      after = [ "network.target" "tracker.service" ];
+      after = [ "network.target" "tracker.service" "pulseaudio.service" ];
       wantedBy = [ "default.target" ];
       serviceConfig = {
         User = "wallago";
-        SupplementaryGroups = [ "audio" ];
         ExecStart = "${sonify}";
         Environment = [
           "RUST_LOG=info"
