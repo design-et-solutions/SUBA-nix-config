@@ -1,7 +1,9 @@
-{ inputs, pkgs, lib, ... }:
+{ inputs, pkgs, ... }:
 let
   hostname = "wip";
-  gateway = lib.getExe inputs.gateway.packages.${pkgs.system}.default;
+  gateway = "${inputs.gateway.packages.${pkgs.system}.default}/bin/gateway";
+  tracker = "${inputs.tracker.packages.${pkgs.system}.default}/bin/tracker";
+  sonify = "${inputs.sonify.packages.${pkgs.system}.default}/bin/sonify";
 in {
   imports = [
     inputs.disko.nixosModules.disko
@@ -19,13 +21,59 @@ in {
     firewall.allowedTCPPorts = [ 8080 ];
   };
 
-  systemd.services.gateway = {
-    description = "Run gateway";
-    after = [ "network.target" ];
-    wantedBy = [ "multi-user.target" ];
-    serviceConfig = {
-      ExecStart = ''${gateway} --features "tracker sonify"'';
-      Restart = "on-failure";
+  systemd.services = {
+    gateway = {
+      description = "Run gateway";
+      after = [ "network.target" "tracker.service" "sonify.service" ];
+      wantedBy = [ "multi-user.target" ];
+      serviceConfig = {
+        User = "wallago";
+        ExecStart = "${gateway}";
+        Environment = [
+          "RUST_LOG=info"
+          ''APP_HOST="0.0.0.0"''
+          "APP_PORT=8080"
+          "TRACKER_ENABLE=true"
+          ''TRACKER_HOST="0.0.0.0"''
+          "TRACKER_PORT=50200"
+          "SONIFY_ENABLE=true"
+          "SSL_CRT_FILE=./fullchain.crt"
+          "SSL_KEY_FILE=./gateway.key"
+        ];
+        Restart = "on-failure";
+      };
+    };
+
+    tracker = {
+      description = "Run tracker";
+      after = [ "network.target" ];
+      wantedBy = [ "multi-user.target" ];
+      serviceConfig = {
+        User = "wallago";
+        ExecStart = "${tracker}";
+        Environment =
+          [ "RUST_LOG=info" ''APP_HOST="0.0.0.0"'' "APP_PORT=50200" ];
+        Restart = "on-failure";
+      };
+    };
+
+    sonify = {
+      description = "Run sonify";
+      after = [ "network.target" "tracker.service" ];
+      wantedBy = [ "default.target" ];
+      serviceConfig = {
+        User = "wallago";
+        SupplementaryGroups = [ "audio" ];
+        ExecStart = "${sonify}";
+        Environment = [
+          "RUST_LOG=info"
+          ''APP_HOST="0.0.0.0"''
+          ''TRACKER_HOST="0.0.0.0"''
+          "TRACKER_PORT=50200"
+          "XDG_RUNTIME_DIR=/run/user/1001"
+        ];
+        Restart = "on-failure";
+      };
     };
   };
 }

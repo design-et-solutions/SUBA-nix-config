@@ -42,8 +42,9 @@
     nix-deployer.url = "github:wallago/nix-deployer?dir=nix";
 
     # local
-    gateway.url = "git+ssh://git@github.com/tools-hood/gateway";
-    # gateway.url = "https://github.com/tools-hood/gateway.git";
+    gateway.url = "git+ssh://git@github.com/tools-hood/gateway?dir=nix";
+    tracker.url = "git+ssh://git@github.com/tools-hood/tracker?dir=nix";
+    sonify.url = "git+ssh://git@github.com/tools-hood/sonify?dir=nix";
   };
 
   outputs = { self, nixpkgs, home-manager, systems, ... }@inputs:
