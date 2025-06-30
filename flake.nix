@@ -40,6 +40,10 @@
     nix-colors.url = "github:misterio77/nix-colors";
     nix-bootstrap.url = "github:wallago/nix-bootstrap?dir=nix";
     nix-deployer.url = "github:wallago/nix-deployer?dir=nix";
+
+    # local
+    gateway.url = "git+ssh://git@github.com/tools-hood/gateway";
+    # gateway.url = "https://github.com/tools-hood/gateway.git";
   };
 
   outputs = { self, nixpkgs, home-manager, systems, ... }@inputs:
